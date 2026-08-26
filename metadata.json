@@ -1,0 +1,6 @@
+{
+  "name": "Python Browser Game",
+  "description": "Educational browser game to learn Python using Pyodide.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
