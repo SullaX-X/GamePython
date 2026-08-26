@@ -13,7 +13,7 @@ export function GameArea() {
   const targetIndex = targetPosition.y * 8 + targetPosition.x;
 
   return (
-    <div className="flex flex-col h-full bg-[radial-gradient(circle_at_0%_0%,#1e293b_0%,#020617_100%)] flex-1 p-8 lg:p-10 relative border-r border-slate-700">
+    <div className="flex flex-col min-h-full bg-[radial-gradient(circle_at_0%_0%,#1e293b_0%,#020617_100%)] flex-1 p-4 sm:p-6 lg:p-10 relative">
       
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -29,12 +29,12 @@ export function GameArea() {
         </button>
       </div>
 
-      <h1 className="text-[32px] font-extrabold mb-6 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+      <h1 className="text-2xl sm:text-[32px] font-extrabold mb-4 sm:mb-6 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent leading-tight">
         {currentLevel.title}
       </h1>
 
       {/* Dialogue / Description */}
-      <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-6 mb-8 text-slate-300 leading-relaxed text-base relative overflow-hidden shadow-lg">
+      <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 text-slate-300 leading-relaxed text-sm sm:text-base relative overflow-hidden shadow-lg">
         <div className={clsx("absolute top-0 left-0 w-1 h-full bg-current", currentLevel.character.colorClass)}></div>
         <div className="text-xs font-bold uppercase tracking-wider mb-3 text-slate-500 font-mono">
           ВХОДЯЩЕЕ СООБЩЕНИЕ: <span className={currentLevel.character.colorClass}>{currentLevel.character.name}</span> <span className="opacity-50">({currentLevel.character.role})</span>
@@ -45,7 +45,7 @@ export function GameArea() {
       </div>
 
       {/* Visualizer */}
-      <div className="flex-1 bg-black rounded-2xl border-4 border-slate-800 flex flex-col items-center justify-center relative overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.8)] p-6">
+      <div className="flex-1 shrink-0 bg-black rounded-2xl border-[3px] sm:border-4 border-slate-800 flex flex-col items-center justify-center relative overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.8)] p-4 sm:p-6 min-h-[320px] sm:min-h-[450px]">
         
         <AnimatePresence mode="wait">
           {isSuccess ? (
@@ -79,7 +79,7 @@ export function GameArea() {
         </AnimatePresence>
 
         {/* Grid Pattern */}
-        <div className="w-full max-w-[400px] aspect-square grid grid-cols-8 grid-rows-8 gap-[2px] p-2 bg-slate-900/50 rounded-xl border border-slate-800 relative z-10 mx-auto">
+        <div className="w-full max-w-[320px] sm:max-w-[400px] aspect-square grid grid-cols-8 grid-rows-8 gap-[1px] sm:gap-[2px] p-1.5 sm:p-2 bg-slate-900/50 rounded-xl border border-slate-800 relative z-10 mx-auto">
           {gridArray.map((_, i) => {
             const isDrone = i === droneIndex;
             const isTarget = i === targetIndex;
