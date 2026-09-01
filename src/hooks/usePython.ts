@@ -17,6 +17,10 @@ export function usePython() {
     setIsAnimating,
     setDronePosition,
     dronePosition,
+    inventory,
+    gridPickables,
+    setInventory,
+    setGridPickables,
     targetPosition
   } = useGameStore();
 
@@ -38,13 +42,51 @@ export function usePython() {
     setIsAnimating(true);
     let currentX = useGameStore.getState().dronePosition.x;
     let currentY = useGameStore.getState().dronePosition.y;
+    let currentInventory = useGameStore.getState().inventory;
+    let currentGridPickables = [...useGameStore.getState().gridPickables];
+    const currentLevel = levels[currentLevelIndex];
+    const obstacles = currentLevel.obstacles || [];
+
     
     for (const cmd of commands) {
       await new Promise(r => setTimeout(r, 400));
-      if (cmd === 'MOVE_UP' && currentY > 0) currentY -= 1;
-      else if (cmd === 'MOVE_DOWN' && currentY < 7) currentY += 1;
-      else if (cmd === 'MOVE_LEFT' && currentX > 0) currentX -= 1;
-      else if (cmd === 'MOVE_RIGHT' && currentX < 7) currentX += 1;
+      let nextX = currentX;
+      let nextY = currentY;
+      
+      if (cmd === 'MOVE_UP' && currentY > 0) nextY -= 1;
+      else if (cmd === 'MOVE_DOWN' && currentY < 7) nextY += 1;
+      else if (cmd === 'MOVE_LEFT' && currentX > 0) nextX -= 1;
+      else if (cmd === 'MOVE_RIGHT' && currentX < 7) nextX += 1;
+      
+      if (cmd === 'GRAB') {
+        const itemIndex = currentGridPickables.findIndex(p => p.x === currentX && p.y === currentY);
+        if (itemIndex !== -1) {
+          currentGridPickables.splice(itemIndex, 1);
+          currentInventory += 1;
+          useGameStore.getState().setGridPickables(currentGridPickables);
+          useGameStore.getState().setInventory(currentInventory);
+        }
+      } else if (cmd === 'DROP') {
+        if (currentInventory > 0) {
+          currentInventory -= 1;
+          currentGridPickables.push({x: currentX, y: currentY});
+          useGameStore.getState().setGridPickables(currentGridPickables);
+          useGameStore.getState().setInventory(currentInventory);
+        }
+      }
+      
+            // Check for obstacles
+      if (!obstacles.some(obs => obs.x === nextX && obs.y === nextY)) {
+        currentX = nextX;
+        currentY = nextY;
+      }
+      
+      const teleports = currentLevel.teleports || [];
+      const teleport = teleports.find(t => t.from.x === currentX && t.from.y === currentY);
+      if (teleport) {
+        currentX = teleport.to.x;
+        currentY = teleport.to.y;
+      }
       
       setDronePosition(currentX, currentY);
     }
@@ -52,7 +94,6 @@ export function usePython() {
     await new Promise(r => setTimeout(r, 400)); // wait a bit after moving
 
     const { targetPosition } = useGameStore.getState();
-    const currentLevel = levels[currentLevelIndex];
     let passed = true;
 
     if (currentLevel.expectedStdout !== undefined) {
@@ -64,7 +105,16 @@ export function usePython() {
 
     if (passed) {
       if (currentX === targetPosition.x && currentY === targetPosition.y) {
-        setIsSuccess(true);
+        if (currentLevel.pickables && currentLevel.pickables.length > 0) {
+          const totalItems = currentInventory + currentGridPickables.filter(p => p.x === targetPosition.x && p.y === targetPosition.y).length;
+          if (totalItems >= currentLevel.pickables.length) {
+            setIsSuccess(true);
+          } else {
+            setError("Цель достигнута, но груз не доставлен! Используй grab().");
+          }
+        } else {
+          setIsSuccess(true);
+        }
       } else if (commands.length > 0 || currentLevel.startPosition) {
         setError("Цель не достигнута. Проверьте координаты.");
       } else {
@@ -125,8 +175,22 @@ export function usePython() {
 
     // Reset drone position to start before running code
     setDronePosition(levels[currentLevelIndex].startPosition?.x ?? 0, levels[currentLevelIndex].startPosition?.y ?? 0);
+    setInventory(0);
+    setGridPickables(levels[currentLevelIndex].pickables ? [...levels[currentLevelIndex].pickables] : []);
     
-    workerRef.current.postMessage({ id, code, testCode: levels[currentLevelIndex].testCode });
+    workerRef.current.postMessage({ 
+      id, 
+      code, 
+      testCode: levels[currentLevelIndex].testCode,
+      env: {
+        droneX: levels[currentLevelIndex].startPosition?.x ?? 0,
+        droneY: levels[currentLevelIndex].startPosition?.y ?? 0,
+        targetX: levels[currentLevelIndex].targetPosition?.x ?? 7,
+        targetY: levels[currentLevelIndex].targetPosition?.y ?? 7,
+        obstacles: levels[currentLevelIndex].obstacles || [],
+        teleports: levels[currentLevelIndex].teleports || [],
+      }
+    });
   }, [code, currentLevelIndex, initWorker, setError, setIsRunning, setIsSuccess, setOutput, playAnimationQueue, setDronePosition]);
 
   return { runCode };

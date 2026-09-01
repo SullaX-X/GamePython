@@ -11,29 +11,29 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export function MacOSConsole() {
-  const { code, setCode, output, error, isRunning, isAnimating, isSuccess, resetLevel } = useGameStore();
+  const { code, setCode, output, error, isRunning, isAnimating, isSuccess, resetLevel, theme } = useGameStore();
   const { runCode } = usePython();
 
   const isExecuting = isRunning || isAnimating;
 
   return (
     <div className="flex flex-col flex-1 gap-4 lg:gap-[20px] h-full">
-      <div className="flex flex-col flex-1 bg-black rounded-[10px] overflow-hidden border border-slate-700 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] relative">
+      <div className="flex flex-col flex-1 bg-slate-50 dark:bg-black rounded-[10px] overflow-hidden border border-slate-300 dark:border-slate-700 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] relative">
         {/* Mac OS Header */}
-        <div className="flex items-center px-[10px] sm:px-[15px] py-[8px] sm:py-[10px] bg-[#27272a] border-b border-[#3f3f46] justify-between">
+        <div className="flex items-center px-[10px] sm:px-[15px] py-[8px] sm:py-[10px] bg-slate-200 dark:bg-[#27272a] border-b border-slate-300 dark:border-[#3f3f46] justify-between">
           <div className="flex space-x-2">
             <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
             <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
             <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
           </div>
-          <div className="text-xs font-mono text-[#a1a1aa]">
+          <div className="text-xs font-mono text-slate-500 dark:text-[#a1a1aa]">
             main.py — python3.11
           </div>
           <div className="flex space-x-2">
             <button
               onClick={resetLevel}
               disabled={isExecuting}
-              className={cn("text-[#a1a1aa] transition-colors hover:text-white", isExecuting && "opacity-50 cursor-not-allowed")}
+              className={cn("text-slate-500 dark:text-[#a1a1aa] transition-colors hover:text-white", isExecuting && "opacity-50 cursor-not-allowed")}
               title="Сбросить код"
             >
               <RotateCcw size={14} />
@@ -42,14 +42,14 @@ export function MacOSConsole() {
         </div>
 
         {/* Code Editor */}
-        <div className="flex-[1.5] overflow-auto bg-[#09090b] text-sm font-mono text-[#e2e8f0]">
+        <div id="tour-editor" className="flex-[1.5] overflow-auto bg-white dark:bg-[#09090b] text-sm font-mono text-slate-800 dark:text-slate-800 dark:text-[#e2e8f0]">
           <CodeMirror
             value={code}
             height="100%"
-            theme="dark"
+            theme={theme}
             extensions={[python()]}
             onChange={(value) => setCode(value)}
-            className="h-full [&_.cm-gutters]:bg-[#09090b] [&_.cm-gutters]:border-none [&_.cm-gutters]:text-[#3f3f46] [&_.cm-activeLineGutter]:bg-transparent [&_.cm-activeLineGutter]:text-slate-300 [&_.cm-activeLine]:bg-white/5"
+            className="h-full [&_.cm-gutters]:bg-white dark:[&_.cm-gutters]:bg-[#09090b] [&_.cm-gutters]:border-none [&_.cm-gutters]:text-slate-400 dark:[&_.cm-gutters]:text-[#3f3f46] [&_.cm-activeLineGutter]:bg-transparent [&_.cm-activeLineGutter]:text-slate-800 dark:[&_.cm-activeLineGutter]:text-slate-300 [&_.cm-activeLine]:bg-slate-100 dark:[&_.cm-activeLine]:bg-white/5"
             basicSetup={{
               lineNumbers: true,
               highlightActiveLineGutter: true,
@@ -59,8 +59,8 @@ export function MacOSConsole() {
         </div>
 
         {/* Terminal Output */}
-        <div className="flex-1 bg-slate-950 border-t border-slate-700 p-[10px] sm:p-[15px] font-mono text-[12px] sm:text-[13px] text-[#a1a1aa] overflow-y-auto">
-          <div className="text-slate-500 mb-2">$ python3 main.py</div>
+        <div className="flex-1 bg-slate-100 dark:bg-slate-950 border-t border-slate-300 dark:border-slate-700 p-[10px] sm:p-[15px] font-mono text-[12px] sm:text-[13px] text-slate-600 dark:text-[#a1a1aa] overflow-y-auto">
+          <div className="text-slate-400 dark:text-slate-500 mb-2">$ python3 main.py</div>
           {output && (
             <pre className={cn("whitespace-pre-wrap", isSuccess ? "text-green-500" : "text-[#e2e8f0]")}>
               {output}
@@ -72,7 +72,7 @@ export function MacOSConsole() {
             </pre>
           )}
           {!output && !error && (
-            <div className="text-slate-600">Ожидание выполнения кода...</div>
+            <div className="text-slate-400 dark:text-slate-600">Ожидание выполнения кода...</div>
           )}
           {(output || error) && (
             <div className="mt-[10px] text-white">
@@ -83,6 +83,7 @@ export function MacOSConsole() {
 
         {/* Run Button positioned over the container */}
         <button
+          id="tour-run-btn"
           onClick={runCode}
           disabled={isExecuting}
           className={cn(
@@ -106,7 +107,7 @@ export function MacOSConsole() {
       </div>
 
       {/* Status bar */}
-      <div className="py-2 px-5 bg-slate-900 border-t border-slate-800 flex justify-between text-[11px] text-slate-500 font-mono items-center">
+      <div className="py-2 px-5 bg-slate-200 dark:bg-slate-900 border-t border-slate-300 dark:border-slate-800 flex justify-between text-[11px] text-slate-500 font-mono items-center">
         <div>Pyodide v0.27.2 | Worker ID: #8821</div>
         <div className="text-green-500 font-bold">● WORKER_READY</div>
       </div>

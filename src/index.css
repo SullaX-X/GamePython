@@ -1,9 +1,11 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
+
 
 html, body, #root {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
-  overflow: hidden;
 }
 
 @layer utilities {
@@ -20,4 +22,20 @@ html, body, #root {
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: #475569;
   }
+}
+
+/* React Joyride Beacon styles */
+.dark .react-joyride__beacon {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
+}
+
+.dark .react-joyride__beacon span > span:first-child {
+  border-color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6) !important;
+}
+
+.dark .react-joyride__beacon span > span:last-child {
+  background-color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9) !important;
 }

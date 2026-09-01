@@ -2,10 +2,21 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { levels } from '../data/levels';
 
+type Theme = "light" | "dark";
+
 interface GameState {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
   currentLevelIndex: number;
   maxUnlockedLevel: number;
   isLevelMenuOpen: boolean;
+  isDocsOpen: boolean;
+  currentDocTopic: string | null;
+  hasSeenOnboarding: boolean;
+  onboardingKey: number;
+  completeOnboarding: () => void;
+  startOnboarding: () => void;
   code: string;
   output: string;
   isSuccess: boolean;
@@ -14,6 +25,8 @@ interface GameState {
   error: string | null;
   dronePosition: { x: number; y: number };
   targetPosition: { x: number; y: number };
+  inventory: number;
+  gridPickables: { x: number; y: number }[];
   setCode: (code: string) => void;
   setOutput: (output: string) => void;
   setIsSuccess: (isSuccess: boolean) => void;
@@ -22,18 +35,31 @@ interface GameState {
   setError: (error: string | null) => void;
   setDronePosition: (x: number, y: number) => void;
   setTargetPosition: (x: number, y: number) => void;
+  setInventory: (inventory: number) => void;
+  setGridPickables: (pickables: { x: number; y: number }[]) => void;
   nextLevel: () => void;
   resetLevel: () => void;
   goToLevel: (index: number) => void;
   toggleLevelMenu: () => void;
+  toggleDocsMenu: () => void;
+  openDocs: (topicId?: string) => void;
 }
 
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
+      theme: "dark",
+      setTheme: (theme) => set({ theme }),
+      toggleTheme: () => set((state) => ({ theme: state.theme === "dark" ? "light" : "dark" })),
       currentLevelIndex: 0,
       maxUnlockedLevel: 0,
       isLevelMenuOpen: false,
+      isDocsOpen: false,
+      currentDocTopic: null,
+      hasSeenOnboarding: false,
+      onboardingKey: 0,
+      completeOnboarding: () => set({ hasSeenOnboarding: true }),
+      startOnboarding: () => set((state) => ({ hasSeenOnboarding: false, onboardingKey: state.onboardingKey + 1 })),
       code: levels[0].initialCode,
       output: '',
       isSuccess: false,
@@ -42,6 +68,8 @@ export const useGameStore = create<GameState>()(
       error: null,
       dronePosition: { x: levels[0].startPosition?.x ?? 0, y: levels[0].startPosition?.y ?? 0 },
       targetPosition: { x: levels[0].targetPosition?.x ?? 7, y: levels[0].targetPosition?.y ?? 7 },
+      inventory: 0,
+      gridPickables: levels[0].pickables ? [...levels[0].pickables] : [],
 
       setCode: (code) => set({ code }),
       setOutput: (output) => set({ output }),
@@ -59,6 +87,8 @@ export const useGameStore = create<GameState>()(
       setError: (error) => set({ error }),
       setDronePosition: (x, y) => set({ dronePosition: { x, y } }),
       setTargetPosition: (x, y) => set({ targetPosition: { x, y } }),
+      setInventory: (inventory) => set({ inventory }),
+      setGridPickables: (gridPickables) => set({ gridPickables }),
 
       nextLevel: () => {
         const { currentLevelIndex } = get();
@@ -72,6 +102,8 @@ export const useGameStore = create<GameState>()(
             error: null,
             dronePosition: { x: levels[nextIndex].startPosition?.x ?? 0, y: levels[nextIndex].startPosition?.y ?? 0 },
             targetPosition: { x: levels[nextIndex].targetPosition?.x ?? 7, y: levels[nextIndex].targetPosition?.y ?? 7 },
+            inventory: 0,
+            gridPickables: levels[nextIndex].pickables ? [...levels[nextIndex].pickables] : [],
           });
         }
       },
@@ -85,6 +117,8 @@ export const useGameStore = create<GameState>()(
           error: null,
           dronePosition: { x: levels[currentLevelIndex].startPosition?.x ?? 0, y: levels[currentLevelIndex].startPosition?.y ?? 0 },
           targetPosition: { x: levels[currentLevelIndex].targetPosition?.x ?? 7, y: levels[currentLevelIndex].targetPosition?.y ?? 7 },
+          inventory: 0,
+          gridPickables: levels[currentLevelIndex].pickables ? [...levels[currentLevelIndex].pickables] : [],
         });
       },
 
@@ -100,12 +134,20 @@ export const useGameStore = create<GameState>()(
               isLevelMenuOpen: false,
               dronePosition: { x: levels[index].startPosition?.x ?? 0, y: levels[index].startPosition?.y ?? 0 },
               targetPosition: { x: levels[index].targetPosition?.x ?? 7, y: levels[index].targetPosition?.y ?? 7 },
+              inventory: 0,
+              gridPickables: levels[index].pickables ? [...levels[index].pickables] : [],
             }));
          }
       },
 
       toggleLevelMenu: () => {
          set((state) => ({ isLevelMenuOpen: !state.isLevelMenuOpen }));
+      },
+      toggleDocsMenu: () => {
+         set((state) => ({ isDocsOpen: !state.isDocsOpen, currentDocTopic: !state.isDocsOpen ? null : state.currentDocTopic }));
+      },
+      openDocs: (topicId?: string) => {
+         set({ isDocsOpen: true, currentDocTopic: topicId || null });
       }
     }),
     {
@@ -113,7 +155,9 @@ export const useGameStore = create<GameState>()(
       partialize: (state) => ({ 
         currentLevelIndex: state.currentLevelIndex,
         maxUnlockedLevel: state.maxUnlockedLevel,
-        code: state.code
+        hasSeenOnboarding: state.hasSeenOnboarding,
+        code: state.code,
+        theme: state.theme
       }),
     }
   )
